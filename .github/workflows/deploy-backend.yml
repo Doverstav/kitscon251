@@ -18,4 +18,9 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: "backend/"
-          command: deploy --minify src/index.ts
+          preCommands: |
+            echo "*** pre commands ***"
+            echo `pwd`
+            npx wrangler --version
+            npm install wrangler@4.4.0
+            echo "******"
