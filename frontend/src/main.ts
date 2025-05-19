@@ -10,7 +10,9 @@ window.addEventListener("load", async () => {
   console.log("Service Worker registration in progress...");
   if ("serviceWorker" in navigator) {
     try {
-      const reg = await navigator.serviceWorker.register("/sw.js");
+      const reg = await navigator.serviceWorker.register(
+        `${import.meta.env.BASE_URL}sw.js`
+      );
       console.log(reg);
       console.log("Service Worker registered successfully.");
     } catch (error) {
