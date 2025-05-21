@@ -10,7 +10,7 @@
   let subscriptionTopic = $state("");
   let notificationTopic = $state("");
   let notificationPermission = $derived(
-    "Notification" in window ? Notification.permission : undefined
+    "Notification" in window ? Notification.permission : null
   );
 
   const requestNotificationPermission = () => {
@@ -132,12 +132,21 @@
 </script>
 
 <main>
+  {#if notificationPermission === null}
+    <p>
+      Notification permission is not supported in this browser. Users on iOS may
+      need to add this site to their homescreen to be able to receive
+      notifications. This can be done by clicking the share icon and scrolling
+      down to the correct option.
+    </p>
+  {/if}
+
   {#if notificationPermission === "denied"}
-    This page requires notification to be enabled to work
+    <p>This page requires notification to be enabled to work</p>
   {/if}
 
   <button
-    hidden={notificationPermission === "granted"}
+    hidden={notificationPermission !== "default"}
     onclick={requestNotificationPermission}>Allow notifications</button
   >
 
