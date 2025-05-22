@@ -115,7 +115,7 @@
         const endpoint = subscription?.endpoint;
         if (!endpoint) {
           console.error("No subscription found");
-          return;
+          return [];
         }
         const searchParams = new URLSearchParams({ endpoint });
 
@@ -124,7 +124,7 @@
         );
         return response.json();
       } catch (error) {
-        console.error("Error getting subscription:", error);
+        console.error("Error getting subscriptions: ", error);
       }
     },
     initialData: [],
