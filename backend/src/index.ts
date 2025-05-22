@@ -28,8 +28,6 @@ type Subscription = {
   userId: string;
 };
 
-// const subscriptions: Subscription[] = [];
-
 app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
@@ -41,9 +39,6 @@ app.get("/subscriptions", async (c) => {
     return c.newResponse("User ID is required", 400);
   }
 
-  // const userSubscriptions = subscriptions.filter((sub) => {
-  //   return sub.userId === userId;
-  // });
   const userSubscription = await c.env.SUBSCRIPTIONS.get<Subscription>(userId, {
     type: "json",
   });
@@ -86,27 +81,11 @@ app.post("/subscribe", async (c) => {
     );
   }
 
-  // if (subscriptions.some((sub) => sub.userId === body.userId)) {
-  //   subscriptions.map((sub) => {
-  //     if (sub.userId === body.userId && !sub.topics.includes(body.topic)) {
-  //       sub.topics.push(body.topic);
-  //     }
-  //   });
-  // } else {
-  //   subscriptions.push({
-  //     sub: body.subscription,
-  //     topics: [body.topic],
-  //     userId: body.userId,
-  //   });
-  // }
   return c.newResponse(null, 200);
 });
 
 app.post("/sendNotification", async (c) => {
   const { topic, userId } = await c.req.json();
-  // const userSubscriptions = subscriptions.filter(
-  //   (sub) => sub.userId === userId
-  // );
   const allUserIds = (await c.env.SUBSCRIPTIONS.list()).keys.map(
     (key) => key.name
   );
@@ -126,10 +105,11 @@ app.post("/sendNotification", async (c) => {
       const subscription = await c.env.SUBSCRIPTIONS.get<Subscription>(userId, {
         type: "json",
       });
+
       if (!subscription?.topics.includes(topic)) {
         return;
       }
-      console.log("Sending notification to:", subscription);
+
       try {
         const payload = await buildPushPayload(
           {
@@ -141,9 +121,7 @@ app.post("/sendNotification", async (c) => {
           subscription.sub,
           vapid
         );
-        const res = await fetch(subscription.sub.endpoint, payload);
-        console.log(res);
-        console.log(await res.text());
+        await fetch(subscription.sub.endpoint, payload);
         // await webPush.sendNotification(
         //   sub as PushSubscription,
         //   "Test Notification"
