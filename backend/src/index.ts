@@ -13,16 +13,22 @@ import { env } from "hono/adapter";
 //   vapid.privateKey
 // );
 
-const app = new Hono();
+type Bindings = {
+  SUBSCRIPTIONS: KVNamespace;
+};
+
+const app = new Hono<{ Bindings: Bindings }>();
 
 app.use(logger());
 app.use(cors());
 
-const subscriptions: {
+type Subscription = {
   sub: PushSubscription;
   topics: string[];
   userId: string;
-}[] = [];
+};
+
+// const subscriptions: Subscription[] = [];
 
 app.get("/", (c) => {
   return c.text("Hello Hono!");
@@ -31,12 +37,19 @@ app.get("/", (c) => {
 app.get("/subscriptions", async (c) => {
   const userId = c.req.query("userId");
 
-  const userSubscriptions = subscriptions.filter((sub) => {
-    return sub.userId === userId;
+  if (!userId) {
+    return c.newResponse("User ID is required", 400);
+  }
+
+  // const userSubscriptions = subscriptions.filter((sub) => {
+  //   return sub.userId === userId;
+  // });
+  const userSubscription = await c.env.SUBSCRIPTIONS.get<Subscription>(userId, {
+    type: "json",
   });
 
   return c.json({
-    subscriptions: userSubscriptions.flatMap((sub) => sub.topics),
+    subscriptions: userSubscription?.topics,
   });
 });
 
@@ -47,26 +60,55 @@ app.post("/subscribe", async (c) => {
     return c.newResponse("User ID is required", 400);
   }
 
-  if (subscriptions.some((sub) => sub.userId === body.userId)) {
-    subscriptions.map((sub) => {
-      if (sub.userId === body.userId && !sub.topics.includes(body.topic)) {
-        sub.topics.push(body.topic);
-      }
-    });
-  } else {
-    subscriptions.push({
-      sub: body.subscription,
-      topics: [body.topic],
-      userId: body.userId,
-    });
+  const userSubscription = await c.env.SUBSCRIPTIONS.get<Subscription>(
+    body.userId,
+    {
+      type: "json",
+    }
+  );
+
+  if (userSubscription === null) {
+    await c.env.SUBSCRIPTIONS.put(
+      body.userId,
+      JSON.stringify({
+        sub: body.subscription,
+        topics: [body.topic],
+        userId: body.userId,
+      })
+    );
+  } else if (!userSubscription.topics.includes(body.topic)) {
+    await c.env.SUBSCRIPTIONS.put(
+      body.userId,
+      JSON.stringify({
+        ...userSubscription,
+        topics: [...userSubscription.topics, body.topic],
+      })
+    );
   }
+
+  // if (subscriptions.some((sub) => sub.userId === body.userId)) {
+  //   subscriptions.map((sub) => {
+  //     if (sub.userId === body.userId && !sub.topics.includes(body.topic)) {
+  //       sub.topics.push(body.topic);
+  //     }
+  //   });
+  // } else {
+  //   subscriptions.push({
+  //     sub: body.subscription,
+  //     topics: [body.topic],
+  //     userId: body.userId,
+  //   });
+  // }
   return c.newResponse(null, 200);
 });
 
 app.post("/sendNotification", async (c) => {
   const { topic, userId } = await c.req.json();
-  const userSubscriptions = subscriptions.filter(
-    (sub) => sub.userId === userId
+  // const userSubscriptions = subscriptions.filter(
+  //   (sub) => sub.userId === userId
+  // );
+  const allUserIds = (await c.env.SUBSCRIPTIONS.list()).keys.map(
+    (key) => key.name
   );
 
   const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY } = env<{
@@ -80,11 +122,14 @@ app.post("/sendNotification", async (c) => {
   };
 
   await Promise.all(
-    userSubscriptions.map(async (sub) => {
-      if (!sub.topics.includes(topic)) {
+    allUserIds.map(async (userId) => {
+      const subscription = await c.env.SUBSCRIPTIONS.get<Subscription>(userId, {
+        type: "json",
+      });
+      if (!subscription?.topics.includes(topic)) {
         return;
       }
-      // console.log("Sending notification to:", sub);
+      console.log("Sending notification to:", subscription);
       try {
         const payload = await buildPushPayload(
           {
@@ -93,12 +138,12 @@ app.post("/sendNotification", async (c) => {
               title: topic,
             }),
           },
-          sub.sub,
+          subscription.sub,
           vapid
         );
-        await fetch(sub.sub.endpoint, payload);
-        // console.log(res);
-        // console.log(await res.text());
+        const res = await fetch(subscription.sub.endpoint, payload);
+        console.log(res);
+        console.log(await res.text());
         // await webPush.sendNotification(
         //   sub as PushSubscription,
         //   "Test Notification"

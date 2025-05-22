@@ -6,6 +6,12 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  "kv_namespaces": [
+    {
+      "binding": "SUBSCRIPTIONS",
+      "id": "b16c5d3d24a94ec092d10606a483fbb1"
+    }
+  ]
   // "vars": {
   //   "MY_VAR": "my-variable"
   // },
