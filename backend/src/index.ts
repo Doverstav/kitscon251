@@ -18,34 +18,56 @@ const app = new Hono();
 app.use(logger());
 app.use(cors());
 
-const subscriptions: { sub: PushSubscription; topic: string }[] = [];
+const subscriptions: {
+  sub: PushSubscription;
+  topics: string[];
+  userId: string;
+}[] = [];
 
 app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
 app.get("/subscriptions", async (c) => {
-  const endpoint = c.req.query("endpoint");
+  const userId = c.req.query("userId");
 
-  subscriptions.filter((sub) => {
-    return sub.sub.endpoint !== endpoint;
+  const userSubscriptions = subscriptions.filter((sub) => {
+    return sub.userId === userId;
   });
 
   return c.json({
-    subscriptions: subscriptions.map((sub) => sub.topic),
+    subscriptions: userSubscriptions.flatMap((sub) => sub.topics),
   });
 });
 
 app.post("/subscribe", async (c) => {
   const body = await c.req.json();
   console.log("Subscription received:", body);
-  subscriptions.push({ sub: body.subscription, topic: body.topic });
+  if (!body.userId) {
+    return c.newResponse("User ID is required", 400);
+  }
+
+  if (subscriptions.some((sub) => sub.userId === body.userId)) {
+    subscriptions.map((sub) => {
+      if (sub.userId === body.userId && !sub.topics.includes(body.topic)) {
+        sub.topics.push(body.topic);
+      }
+    });
+  } else {
+    subscriptions.push({
+      sub: body.subscription,
+      topics: [body.topic],
+      userId: body.userId,
+    });
+  }
   return c.newResponse(null, 200);
 });
 
 app.post("/sendNotification", async (c) => {
-  const body = await c.req.json();
-  const topic = body.topic;
+  const { topic, userId } = await c.req.json();
+  const userSubscriptions = subscriptions.filter(
+    (sub) => sub.userId === userId
+  );
 
   const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY } = env<{
     VAPID_PUBLIC_KEY: string;
@@ -56,9 +78,10 @@ app.post("/sendNotification", async (c) => {
     publicKey: VAPID_PUBLIC_KEY,
     privateKey: VAPID_PRIVATE_KEY,
   };
+
   await Promise.all(
-    subscriptions.map(async (sub) => {
-      if (sub.topic !== topic) {
+    userSubscriptions.map(async (sub) => {
+      if (!sub.topics.includes(topic)) {
         return;
       }
       // console.log("Sending notification to:", sub);

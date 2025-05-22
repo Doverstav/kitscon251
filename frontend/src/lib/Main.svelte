@@ -31,9 +31,11 @@
 
   const subscribe = createMutation({
     mutationFn: async ({
+      userId,
       topic,
       subscription,
     }: {
+      userId: string;
       topic: string;
       subscription: PushSubscription;
     }) => {
@@ -44,7 +46,7 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ topic, subscription }),
+          body: JSON.stringify({ topic, subscription, userId }),
         }
       );
       if (!response.ok) {
@@ -57,6 +59,11 @@
   });
 
   const handleSubscribe = async () => {
+    const storedUserId = localStorage.getItem("userId");
+    if (!storedUserId) {
+      console.error("No userId found in localStorage");
+      return;
+    }
     const swRegistration = await navigator.serviceWorker.getRegistration();
     if (!swRegistration) {
       console.error("Service Worker not registered");
@@ -68,6 +75,7 @@
       $subscribe.mutate({
         topic: subscriptionTopic,
         subscription: subscription,
+        userId: storedUserId,
       });
     } else {
       console.log("Not subscribed yet, subscribing now...");
@@ -79,6 +87,7 @@
       $subscribe.mutate({
         topic: subscriptionTopic,
         subscription: newSubscription,
+        userId: storedUserId,
       });
     }
 
@@ -86,12 +95,18 @@
   };
 
   const notify = createMutation({
-    mutationFn: async (topic: string) => {
+    mutationFn: async ({
+      topic,
+      userId,
+    }: {
+      topic: string;
+      userId: string;
+    }) => {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/sendNotification`,
         {
           method: "POST",
-          body: JSON.stringify({ topic }),
+          body: JSON.stringify({ topic, userId }),
         }
       );
       if (!response.ok) {
@@ -102,29 +117,31 @@
   });
 
   const handleNotify = () => {
-    $notify.mutate(notificationTopic);
+    const storedUserId = localStorage.getItem("userId");
+    if (!storedUserId) {
+      console.error("No userId found in localStorage");
+      return;
+    }
+    $notify.mutate({ topic: notificationTopic, userId: storedUserId });
   };
 
   const subscribedTopics = createQuery({
     queryKey: ["subscribedTopics"],
     queryFn: async () => {
       try {
-        const swRegistration = await navigator.serviceWorker.getRegistration();
-        const subscription =
-          await swRegistration?.pushManager.getSubscription();
-        const endpoint = subscription?.endpoint;
-        if (!endpoint) {
-          console.error("No subscription found");
+        const storedUserId = localStorage.getItem("userId");
+        if (!storedUserId) {
+          console.error("No userId found in localStorage");
           return [];
         }
-        const searchParams = new URLSearchParams({ endpoint });
+        const searchParams = new URLSearchParams({ userId: storedUserId });
 
         const response = await fetch(
           `${import.meta.env.VITE_BACKEND_URL}/subscriptions?${searchParams.toString()}`
         );
         return response.json();
       } catch (error) {
-        console.error("Error getting subscriptions: ", error);
+        console.error("Error getting subscribed topics: ", error);
       }
     },
     initialData: [],

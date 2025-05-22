@@ -19,6 +19,10 @@ window.addEventListener("load", async () => {
       console.error("Service Worker registration failed:", error);
     }
   }
+
+  if (localStorage.getItem("userId") === null) {
+    localStorage.setItem("userId", crypto.randomUUID());
+  }
 });
 
 export default app;
