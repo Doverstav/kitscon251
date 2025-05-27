@@ -1,14 +1,7 @@
 <script lang="ts">
-  import {
-    createMutation,
-    createQuery,
-    useQueryClient,
-  } from "@tanstack/svelte-query";
   import SubList from "./SubList.svelte";
+  import SubscribeBox from "./SubscribeBox.svelte";
 
-  const queryClient = useQueryClient();
-
-  let subscriptionTopic = $state("");
   let notificationPermission = $derived(
     "Notification" in window ? Notification.permission : null
   );
@@ -27,71 +20,6 @@
         }
       });
     }
-  };
-
-  const subscribe = createMutation({
-    mutationFn: async ({
-      userId,
-      topic,
-      subscription,
-    }: {
-      userId: string;
-      topic: string;
-      subscription: PushSubscription;
-    }) => {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/subscribe`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ topic, subscription, userId }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscribedTopics"] });
-    },
-  });
-
-  const handleSubscribe = async () => {
-    const storedUserId = localStorage.getItem("userId");
-    if (!storedUserId) {
-      console.error("No userId found in localStorage");
-      return;
-    }
-    const swRegistration = await navigator.serviceWorker.getRegistration();
-    if (!swRegistration) {
-      console.error("Service Worker not registered");
-      return;
-    }
-    const subscription = await swRegistration?.pushManager.getSubscription();
-    if (subscription) {
-      console.log("Already subscribed:", subscription);
-      $subscribe.mutate({
-        topic: subscriptionTopic,
-        subscription: subscription,
-        userId: storedUserId,
-      });
-    } else {
-      console.log("Not subscribed yet, subscribing now...");
-      const newSubscription = await swRegistration?.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
-      });
-      console.log("New subscription:", newSubscription);
-      $subscribe.mutate({
-        topic: subscriptionTopic,
-        subscription: newSubscription,
-        userId: storedUserId,
-      });
-    }
-
-    subscriptionTopic = "";
   };
 </script>
 
@@ -118,10 +46,7 @@
     <h1>Welcome to the app!</h1>
     <p>This is a simple Svelte app.</p>
 
-    <div>
-      <input placeholder="Topic" bind:value={subscriptionTopic} />
-      <button onclick={handleSubscribe}>Subscribe</button>
-    </div>
+    <SubscribeBox />
     <SubList />
   {/if}
 </main>
