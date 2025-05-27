@@ -43,10 +43,30 @@
   >
 
   {#if notificationPermission === "granted"}
-    <h1>Welcome to the app!</h1>
-    <p>This is a simple Svelte app.</p>
+    <h1>KitsCon 25.1</h1>
+    <p>
+      This is a simple demo showcasing <a
+        href="https://developer.mozilla.org/en-US/docs/Web/API/Push_API/Best_Practices#overview_of_web_push_notifications"
+        >web push notifications</a
+      >.
+    </p>
+    <p>
+      Subscribe to any topics you want and send a message to any other
+      subscribers on a topic! If you don't see a notification after recently
+      subscribing, you may need to wait a short while as the backend storage is
+      eventually consistent, so changes may need to propagate. If you don't want
+      to receive any more notifications, unsubscribe from a topic alternatively
+      block notifications on this site completely in your browser.
+    </p>
+    <p></p>
 
     <SubscribeBox />
     <SubList />
   {/if}
 </main>
+
+<style>
+  p {
+    max-width: 768px;
+  }
+</style>
