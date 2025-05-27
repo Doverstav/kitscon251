@@ -75,3 +75,18 @@
   <input placeholder="Topic" bind:value={subscriptionTopic} />
   <button onclick={handleSubscribe}>Subscribe</button>
 </div>
+
+<style>
+  div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  input {
+    flex: 1;
+    margin-right: 10px;
+  }
+</style>

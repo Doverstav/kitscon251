@@ -82,12 +82,37 @@
   };
 </script>
 
-<div>
-  {topic}
+<div class="subbox-header">
+  <h3>{topic}</h3>
   <button onclick={handleUnsubscribe}>Unsubscribe</button>
 </div>
-<div>
-  <input bind:value={message} placeholder="Message" /><button
-    onclick={handleNotify}>Message other subscribers</button
-  >
+<div class="subbox-body">
+  <input
+    class="message-input"
+    bind:value={message}
+    placeholder="Message"
+  /><button onclick={handleNotify}>Message other subscribers</button>
 </div>
+
+<style>
+  .subbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .subbox-body {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .message-input {
+    flex: 1;
+    margin-right: 10px;
+  }
+</style>
