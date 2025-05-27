@@ -122,7 +122,7 @@ app.delete("/unsubscribe", async (c) => {
 });
 
 app.post("/sendNotification", async (c) => {
-  const { topic, userId } = await c.req.json();
+  const { topic, message } = await c.req.json();
   const allUserIds = (await c.env.SUBSCRIPTIONS.list()).keys.map(
     (key) => key.name
   );
@@ -151,7 +151,7 @@ app.post("/sendNotification", async (c) => {
         const payload = await buildPushPayload(
           {
             data: JSON.stringify({
-              message: "Test Notification",
+              message: message || `New message regarding ${topic}`,
               title: topic,
             }),
           },

@@ -4,11 +4,11 @@
     createQuery,
     useQueryClient,
   } from "@tanstack/svelte-query";
+  import SubListItem from "./SubListItem.svelte";
 
   const queryClient = useQueryClient();
 
   let subscriptionTopic = $state("");
-  let notificationTopic = $state("");
   let notificationPermission = $derived(
     "Notification" in window ? Notification.permission : null
   );
@@ -94,76 +94,6 @@
     subscriptionTopic = "";
   };
 
-  const unsubscribe = createMutation({
-    mutationFn: async ({
-      userId,
-      topic,
-    }: {
-      userId: string;
-      topic: string;
-    }) => {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/unsubscribe`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ topic, userId }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscribedTopics"] });
-    },
-  });
-
-  const handleUnsubscribe = (topic: string) => {
-    const storedUserId = localStorage.getItem("userId");
-    if (!storedUserId) {
-      console.error("No userId found in localStorage");
-      return;
-    }
-    $unsubscribe.mutate({ topic, userId: storedUserId });
-  };
-
-  const notify = createMutation({
-    mutationFn: async ({
-      topic,
-      userId,
-    }: {
-      topic: string;
-      userId: string;
-    }) => {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/sendNotification`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ topic, userId }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    },
-  });
-
-  const handleNotify = () => {
-    const storedUserId = localStorage.getItem("userId");
-    if (!storedUserId) {
-      console.error("No userId found in localStorage");
-      return;
-    }
-    $notify.mutate({ topic: notificationTopic, userId: storedUserId });
-  };
-
   const subscribedTopics = createQuery({
     queryKey: ["subscribedTopics"],
     queryFn: async () => {
@@ -216,17 +146,11 @@
     </div>
     <h2>Subscribed topics:</h2>
     <ul>
-      {#each $subscribedTopics.data.subscriptions as topic}
+      {#each $subscribedTopics.data.subscriptions as topic (topic)}
         <li>
-          {topic}<button onclick={() => handleUnsubscribe(topic)}
-            >Unsubscribe</button
-          >
+          <SubListItem {topic} />
         </li>
       {/each}
     </ul>
-    <div>
-      <input placeholder="Topic" bind:value={notificationTopic} />
-      <button onclick={handleNotify}>Send notification on topic</button>
-    </div>
   {/if}
 </main>
