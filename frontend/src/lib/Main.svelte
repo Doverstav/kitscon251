@@ -94,6 +94,42 @@
     subscriptionTopic = "";
   };
 
+  const unsubscribe = createMutation({
+    mutationFn: async ({
+      userId,
+      topic,
+    }: {
+      userId: string;
+      topic: string;
+    }) => {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/unsubscribe`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ topic, userId }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["subscribedTopics"] });
+    },
+  });
+
+  const handleUnsubscribe = (topic: string) => {
+    const storedUserId = localStorage.getItem("userId");
+    if (!storedUserId) {
+      console.error("No userId found in localStorage");
+      return;
+    }
+    $unsubscribe.mutate({ topic, userId: storedUserId });
+  };
+
   const notify = createMutation({
     mutationFn: async ({
       topic,
@@ -106,6 +142,9 @@
         `${import.meta.env.VITE_BACKEND_URL}/sendNotification`,
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ topic, userId }),
         }
       );
@@ -178,7 +217,11 @@
     <h2>Subscribed topics:</h2>
     <ul>
       {#each $subscribedTopics.data.subscriptions as topic}
-        <li>{topic}</li>
+        <li>
+          {topic}<button onclick={() => handleUnsubscribe(topic)}
+            >Unsubscribe</button
+          >
+        </li>
       {/each}
     </ul>
     <div>

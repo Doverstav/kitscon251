@@ -84,6 +84,43 @@ app.post("/subscribe", async (c) => {
   return c.newResponse(null, 200);
 });
 
+app.delete("/unsubscribe", async (c) => {
+  const body = await c.req.json();
+  console.log("Unsubscription received:", body);
+  if (!body.userId) {
+    return c.newResponse("User ID is required", 400);
+  }
+
+  const userSubscription = await c.env.SUBSCRIPTIONS.get<Subscription>(
+    body.userId,
+    {
+      type: "json",
+    }
+  );
+
+  if (userSubscription === null) {
+    return c.newResponse("No subscription found for this user", 404);
+  }
+
+  const updatedTopics = userSubscription.topics.filter(
+    (topic) => topic !== body.topic
+  );
+
+  if (updatedTopics.length === 0) {
+    await c.env.SUBSCRIPTIONS.delete(body.userId);
+  } else {
+    await c.env.SUBSCRIPTIONS.put(
+      body.userId,
+      JSON.stringify({
+        ...userSubscription,
+        topics: updatedTopics,
+      })
+    );
+  }
+
+  return c.newResponse(null, 200);
+});
+
 app.post("/sendNotification", async (c) => {
   const { topic, userId } = await c.req.json();
   const allUserIds = (await c.env.SUBSCRIPTIONS.list()).keys.map(
