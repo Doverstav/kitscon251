@@ -56,7 +56,9 @@
       subscribing, you may need to wait a short while as the backend storage is
       eventually consistent, so changes may need to propagate. If you don't want
       to receive any more notifications, unsubscribe from a topic alternatively
-      block notifications on this site completely in your browser.
+      block notifications on this site completely in your browser. Your
+      subscriptions will also be automatically deleted 24 hours after the last
+      update.
     </p>
     <p></p>
 

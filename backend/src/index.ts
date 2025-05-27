@@ -69,7 +69,8 @@ app.post("/subscribe", async (c) => {
         sub: body.subscription,
         topics: [body.topic],
         userId: body.userId,
-      })
+      }),
+      { expirationTtl: 60 * 60 * 24 } // Keep for 24 hours
     );
   } else if (!userSubscription.topics.includes(body.topic)) {
     await c.env.SUBSCRIPTIONS.put(
@@ -77,7 +78,8 @@ app.post("/subscribe", async (c) => {
       JSON.stringify({
         ...userSubscription,
         topics: [...userSubscription.topics, body.topic],
-      })
+      }),
+      { expirationTtl: 60 * 60 * 24 } // Keep for 24 hours
     );
   }
 
@@ -114,7 +116,8 @@ app.delete("/unsubscribe", async (c) => {
       JSON.stringify({
         ...userSubscription,
         topics: updatedTopics,
-      })
+      }),
+      { expirationTtl: 60 * 60 * 24 } // Keep for 24 hours
     );
   }
 
