@@ -4,7 +4,7 @@
     createQuery,
     useQueryClient,
   } from "@tanstack/svelte-query";
-  import SubListItem from "./SubListItem.svelte";
+  import SubList from "./SubList.svelte";
 
   const queryClient = useQueryClient();
 
@@ -93,28 +93,6 @@
 
     subscriptionTopic = "";
   };
-
-  const subscribedTopics = createQuery({
-    queryKey: ["subscribedTopics"],
-    queryFn: async () => {
-      try {
-        const storedUserId = localStorage.getItem("userId");
-        if (!storedUserId) {
-          console.error("No userId found in localStorage");
-          return [];
-        }
-        const searchParams = new URLSearchParams({ userId: storedUserId });
-
-        const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/subscriptions?${searchParams.toString()}`
-        );
-        return response.json();
-      } catch (error) {
-        console.error("Error getting subscribed topics: ", error);
-      }
-    },
-    initialData: [],
-  });
 </script>
 
 <main>
@@ -144,13 +122,6 @@
       <input placeholder="Topic" bind:value={subscriptionTopic} />
       <button onclick={handleSubscribe}>Subscribe</button>
     </div>
-    <h2>Subscribed topics:</h2>
-    <ul>
-      {#each $subscribedTopics.data.subscriptions as topic (topic)}
-        <li>
-          <SubListItem {topic} />
-        </li>
-      {/each}
-    </ul>
+    <SubList />
   {/if}
 </main>
