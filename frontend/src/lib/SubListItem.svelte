@@ -80,6 +80,13 @@
 
     message = ""; // Clear the message input after sending
   };
+
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === "Enter" && event.ctrlKey) {
+      event.preventDefault(); // Prevents the default newline behavior
+      handleNotify(); // Calls the notify function
+    }
+  };
 </script>
 
 <div class="subbox-header">
@@ -87,11 +94,14 @@
   <button onclick={handleUnsubscribe}>Unsubscribe</button>
 </div>
 <div class="subbox-body">
-  <input
+  <textarea
     class="message-input"
     bind:value={message}
+    onkeydown={handleKeydown}
     placeholder="Message"
-  /><button class="primary" onclick={handleNotify}
+    rows="3"
+  ></textarea>
+  <button class="primary" onclick={handleNotify}
     >Message other subscribers</button
   >
 </div>
@@ -106,7 +116,7 @@
 
   .subbox-body {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     justify-content: center;
     row-gap: 10px;
     align-items: center;
@@ -114,7 +124,7 @@
   }
 
   .message-input {
-    flex: 1;
-    margin-right: 10px;
+    width: 100%;
+    resize: vertical;
   }
 </style>
