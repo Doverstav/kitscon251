@@ -73,7 +73,7 @@
 
 <div>
   <input placeholder="Topic" bind:value={subscriptionTopic} />
-  <button onclick={handleSubscribe}>Subscribe</button>
+  <button class="primary" onclick={handleSubscribe}>Subscribe</button>
 </div>
 
 <style>

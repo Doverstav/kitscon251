@@ -69,6 +69,7 @@
 
 <style>
   p {
-    max-width: 768px;
+    max-width: 500px;
+    text-align: left;
   }
 </style>

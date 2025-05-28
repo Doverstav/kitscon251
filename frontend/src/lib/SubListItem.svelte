@@ -91,7 +91,9 @@
     class="message-input"
     bind:value={message}
     placeholder="Message"
-  /><button onclick={handleNotify}>Message other subscribers</button>
+  /><button class="primary" onclick={handleNotify}
+    >Message other subscribers</button
+  >
 </div>
 
 <style>
