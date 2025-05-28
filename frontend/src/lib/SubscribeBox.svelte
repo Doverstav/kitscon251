@@ -69,10 +69,21 @@
 
     subscriptionTopic = "";
   };
+
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === "Enter") {
+      handleSubscribe(); // Calls the subscribe function
+    }
+  };
 </script>
 
+<h2>Subscribe to topic</h2>
 <div>
-  <input placeholder="Topic" bind:value={subscriptionTopic} />
+  <input
+    placeholder="Topic"
+    bind:value={subscriptionTopic}
+    onkeydown={handleKeydown}
+  />
   <button class="primary" onclick={handleSubscribe}>Subscribe</button>
 </div>
 
