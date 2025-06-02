@@ -15,19 +15,13 @@
       topic: string;
       subscription: PushSubscription;
     }) => {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/subscribe`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ topic, subscription, userId }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/subscribe`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ topic, subscription, userId }),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subscribedTopics"] });
@@ -47,19 +41,17 @@
     }
     const subscription = await swRegistration?.pushManager.getSubscription();
     if (subscription) {
-      console.log("Already subscribed:", subscription);
       $subscribe.mutate({
         topic: subscriptionTopic,
         subscription: subscription,
         userId: storedUserId,
       });
     } else {
-      console.log("Not subscribed yet, subscribing now...");
       const newSubscription = await swRegistration?.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
       });
-      console.log("New subscription:", newSubscription);
+
       $subscribe.mutate({
         topic: subscriptionTopic,
         subscription: newSubscription,
@@ -72,7 +64,7 @@
 
   const handleKeydown = (event: KeyboardEvent) => {
     if (event.key === "Enter") {
-      handleSubscribe(); // Calls the subscribe function
+      handleSubscribe();
     }
   };
 </script>

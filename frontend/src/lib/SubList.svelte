@@ -20,6 +20,7 @@
         return response.json();
       } catch (error) {
         console.error("Error getting subscribed topics: ", error);
+        throw error;
       }
     },
     initialData: [],

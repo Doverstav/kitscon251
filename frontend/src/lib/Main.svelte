@@ -60,7 +60,6 @@
       subscriptions will also be automatically deleted 24 hours after the last
       update.
     </p>
-    <p></p>
 
     <SubscribeBox />
     <SubList />

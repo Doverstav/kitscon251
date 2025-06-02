@@ -162,10 +162,6 @@ app.post("/sendNotification", async (c) => {
           vapid
         );
         await fetch(subscription.sub.endpoint, payload);
-        // await webPush.sendNotification(
-        //   sub as PushSubscription,
-        //   "Test Notification"
-        // );
       } catch (error) {
         console.error("Error sending notification:", error);
       }

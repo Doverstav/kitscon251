@@ -15,19 +15,13 @@
       userId: string;
       topic: string;
     }) => {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/unsubscribe`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ topic, userId }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/unsubscribe`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ topic, userId }),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subscribedTopics"] });
@@ -63,9 +57,7 @@
           body: JSON.stringify({ topic, message, userId }),
         }
       );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+
       return response.json();
     },
   });
@@ -83,8 +75,7 @@
 
   const handleKeydown = (event: KeyboardEvent) => {
     if (event.key === "Enter" && event.ctrlKey) {
-      event.preventDefault(); // Prevents the default newline behavior
-      handleNotify(); // Calls the notify function
+      handleNotify();
     }
   };
 </script>
